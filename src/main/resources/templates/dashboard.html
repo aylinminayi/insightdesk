@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>InsightDesk Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1180px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f6f8fb;
+            color: #1f2937;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 22px;
+        }
+
+        .top-bar a {
+            text-decoration: none;
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            margin-bottom: 16px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        .meta {
+            font-size: 14px;
+            color: #4b5563;
+            margin: 8px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            font-size: 13px;
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .analysis {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 8px;
+            background: #eff6ff;
+        }
+
+        .analysis p {
+            margin: 8px 0;
+        }
+
+        .waiting {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .empty {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-top: 18px;
+        }
+
+        .filters select,
+        .filters button {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+        }
+
+        .filters button {
+            border: none;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        .filters button:hover {
+            background: #1d4ed8;
+        }
+
+        .clear-filters {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            align-items: center;
+            margin: 28px 0;
+        }
+
+        .pagination a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="top-bar">
+    <div>
+        <h1>Support Dashboard</h1>
+        <p>Feedback and AI analysis results</p>
+
+        <form method="get" action="/dashboard" class="filters">
+            <select name="status">
+                <option value="">All statuses</option>
+                <option value="queued" th:selected="${status == 'queued'}">Queued</option>
+                <option value="analyzing" th:selected="${status == 'analyzing'}">Analyzing</option>
+                <option value="analyzed" th:selected="${status == 'analyzed'}">Analyzed</option>
+                <option value="failed" th:selected="${status == 'failed'}">Failed</option>
+            </select>
+
+            <select name="category">
+                <option value="">All categories</option>
+                <option value="bug" th:selected="${category == 'bug'}">Bug</option>
+                <option value="feature_request" th:selected="${category == 'feature_request'}">Feature request</option>
+                <option value="complaint" th:selected="${category == 'complaint'}">Complaint</option>
+                <option value="question" th:selected="${category == 'question'}">Question</option>
+            </select>
+
+            <select name="sentiment">
+                <option value="">All sentiments</option>
+                <option value="positive" th:selected="${sentiment == 'positive'}">Positive</option>
+                <option value="neutral" th:selected="${sentiment == 'neutral'}">Neutral</option>
+                <option value="negative" th:selected="${sentiment == 'negative'}">Negative</option>
+            </select>
+
+            <select name="urgency">
+                <option value="">All urgency levels</option>
+                <option value="low" th:selected="${urgency == 'low'}">Low</option>
+                <option value="medium" th:selected="${urgency == 'medium'}">Medium</option>
+                <option value="high" th:selected="${urgency == 'high'}">High</option>
+            </select>
+
+            <button type="submit">Apply Filters</button>
+            <a href="/dashboard" class="clear-filters">Clear</a>
+        </form>
+    </div>
+
+    <a href="/">Open Feedback Form</a>
+</div>
+
+<div th:if="${#lists.isEmpty(feedbackList)}" class="empty">
+    No feedback matches the selected filters.
+</div>
+
+<div th:each="feedback : ${feedbackList}" class="card">
+    <div class="header-row">
+        <div>
+            <h2 th:text="${feedback.title}">Feedback title</h2>
+
+            <div class="meta">
+                <span th:text="${feedback.createdAt}">Created time</span>
+
+                <span th:if="${feedback.contactEmail != null and !feedback.contactEmail.isBlank()}">
+                    · Contact:
+                    <span th:text="${feedback.contactEmail}">email@example.com</span>
+                </span>
+            </div>
+        </div>
+
+        <span class="badge" th:text="${feedback.status}">status</span>
+    </div>
+
+    <p th:text="${feedback.body}">Feedback body</p>
+
+    <div th:if="${feedback.status == 'analyzed'}" class="analysis">
+        <h3>AI Analysis</h3>
+
+        <p>
+            <strong>Sentiment:</strong>
+            <span th:text="${feedback.sentiment}">negative</span>
+        </p>
+
+        <p>
+            <strong>Category:</strong>
+            <span th:text="${feedback.category}">bug</span>
+        </p>
+
+        <p>
+            <strong>Urgency:</strong>
+            <span th:text="${feedback.urgency}">high</span>
+        </p>
+
+        <p>
+            <strong>Summary:</strong>
+            <span th:text="${feedback.summary}">Summary text</span>
+        </p>
+
+        <p>
+            <strong>Suggested reply:</strong>
+            <span th:text="${feedback.suggestedReply}">Suggested reply text</span>
+        </p>
+    </div>
+
+    <div th:if="${feedback.status != 'analyzed'}" class="waiting">
+        AI analysis is currently
+        <span th:text="${feedback.status}">queued</span>.
+    </div>
+</div>
+
+<div class="pagination" th:if="${totalPages > 1}">
+    <a th:if="${currentPage > 0}"
+       th:href="@{/dashboard(
+           status=${status},
+           category=${category},
+           sentiment=${sentiment},
+           urgency=${urgency},
+           page=${currentPage - 1}
+       )}">
+        Previous
+    </a>
+
+    <span>
+        Page <span th:text="${currentPage + 1}">1</span>
+        of <span th:text="${totalPages}">1</span>
+    </span>
+
+    <a th:if="${currentPage + 1 < totalPages}"
+       th:href="@{/dashboard(
+           status=${status},
+           category=${category},
+           sentiment=${sentiment},
+           urgency=${urgency},
+           page=${currentPage + 1}
+       )}">
+        Next
+    </a>
+</div>
+
+</body>
+</html>

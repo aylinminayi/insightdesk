@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: insightdesk-api
+  namespace: insightdesk
+spec:
+  selector:
+    app: insightdesk-api
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: insightdesk-api
+  namespace: insightdesk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: insightdesk-api
+  template:
+    metadata:
+      labels:
+        app: insightdesk-api
+    spec:
+      containers:
+        - name: api
+          image: aylinminayi/insightdesk-api:week2
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: insightdesk-config
+                  key: SPRING_DATASOURCE_URL
+
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: insightdesk-config
+                  key: SPRING_DATASOURCE_USERNAME
+
+            - name: SPRING_DATA_REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: insightdesk-config
+                  key: SPRING_DATA_REDIS_HOST
+
+            - name: SPRING_DATA_REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: insightdesk-config
+                  key: SPRING_DATA_REDIS_PORT
+
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: insightdesk-secret
+                  key: POSTGRES_PASSWORD
+
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: insightdesk-secret
+                  key: GEMINI_API_KEY
+
+            - name: APP_WORKER_ENABLED
+              value: "false"
+              

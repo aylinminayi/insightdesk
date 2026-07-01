@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: insightdesk-config
+  namespace: insightdesk
+data:
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/insightdesk
+  SPRING_DATASOURCE_USERNAME: insightdesk_user
+  SPRING_DATA_REDIS_HOST: redis
+  SPRING_DATA_REDIS_PORT: "6379"
