@@ -1,0 +1,42 @@
+name: Build and Deploy InsightDesk
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build -t aylinminayi/insightdesk-api:week2 .
+
+      - name: Push Docker image
+        run: |
+          docker push aylinminayi/insightdesk-api:week2
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/postgres-pv.yaml
+          kubectl apply -f k8s/postgres-pvc.yaml
+          kubectl apply -f k8s/postgres.yaml
+          kubectl apply -f k8s/redis.yaml
+          kubectl apply -f k8s/api.yaml
+          kubectl apply -f k8s/worker.yaml
+
+      - name: Restart deployments
+        run: |
+          kubectl rollout restart deployment/insightdesk-api -n insightdesk
+          kubectl rollout restart deployment/insightdesk-worker -n insightdesk
